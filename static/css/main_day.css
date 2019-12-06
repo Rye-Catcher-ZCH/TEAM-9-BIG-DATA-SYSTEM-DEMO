@@ -1,0 +1,19 @@
+.el-table .a-row-day {
+	background: #eeeeee;
+}
+.el-table .b-row-day {
+	background: #ffffff;
+}
+
+@keyframes rolling{
+	0%{
+		transform: translateY(0);
+	}
+	100%{
+		transform: translateY(-50px);
+	}
+}
+
+.el-button{
+	
+}

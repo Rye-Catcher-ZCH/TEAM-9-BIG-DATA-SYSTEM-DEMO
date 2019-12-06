@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html style="background-color:rgb(239,241,245)!important;">
+<head lang="en">
+    <meta charset="UTF-8">
+	<META HTTP-EQUIV="pragma" CONTENT="no-cache">
+    <title></title>
+    <style>
+	</style>
+	<!-- 引入 ECharts -->
+	<script src="static/js/echarts.min.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+	<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+	<div id="app">
+		<el-row :style="'background-color:' + theme.bgc + '!important;'">
+			<el-col :span="isCollapse ? 1 : 4">
+				<!--el-menu
+				class="el-menu-demo" 
+				:collapse="isCollapse"
+				mode="vertical" 
+				menu-trigger="click"
+				:background-color="theme.nav.bgc"
+				:text-color="theme.nav.txtc"
+				:active-text-color="theme.nav.acttxtc">
+				  <image :src="theme.logo.url" v-on:click="changeTheme" v-show="!isCollapse"></image>
+				</el-menu-->
+				<el-menu 
+				style="height: 4000px!important;border-right: 0px!important;"
+				:default-active="navIndex"
+				:collapse="isCollapse"
+				class="el-menu-demo" 
+				mode="vertical" 
+				menu-trigger="click"
+				@select="handleNav"
+				:background-color="theme.nav.bgc"
+				:text-color="theme.nav.txtc"
+				:active-text-color="theme.nav.acttxtc"><!--active-text-color="#00f"-->
+				  <el-menu-item index="1" style="height: 50px!important;"><i class="el-icon-s-home"></i><span slot="title">首 页 Home Page</span></el-menu-item>
+				  <el-menu-item index="2" style="height: 50px!important;"><i class="el-icon-s-home"></i><span slot="title">视 图 Graph Board</span></el-menu-item>
+				  <el-menu-item index="3" style="height: 50px!important;"><i class="el-icon-user"></i><span slot="title">个人账户 Account</span></el-menu-item>
+				  <el-menu-item index="4" :v-show="isAdmin" style="height: 50px!important;"><i class="el-icon-user-solid"></i><span slot="title">管 理 Management</span></el-menu-item>
+				</el-menu>
+			</el-col>
+			<el-col :span="isCollapse ? 23 : 20">
+				<el-row style="border-bottom:1px solid #dddddd; padding-bottom: 10px!important; background-color:#fff!important;">
+					<el-col :span="18" vertical-align="center">
+						<el-button type="success" size="mini" icon="el-icon-moon" @click="isCollapse = !isCollapse;" style="margin-left:20px!important; margin-top:10px!important; background-color: #094!important;">open | close</el-button>
+					</el-col>
+					<el-col :span="6" vertical-align="center">
+						<i class="el-icon-s-help" size="medium"></i>
+						<i class="el-icon-sunny" size="medium" @click="theme_is_day"></i>
+						<i class="el-icon-moon" size="medium" @click="theme_is_night"></i>
+						<i class="el-icon-close" size="medium" @click="logout"></i>
+						<image :src="theme.logo_small.url" height="30px"></image>
+					</el-col>
+				</el-row>
+				<el-row style="border-bottom:1px solid #dddddd; padding-top: 10px!important; background-color:#fff!important;">
+					<el-page-header @back="goBack" :content="getHeaderName()" style="height: 30px!important;margin-left:20px!important;"></el-page-header>
+				</el-row>
+				<el-row v-show="navIndex == '1'" style="margin-top: 10px!important; margin-bottom: 10px!important;">
+					<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+						<el-col :span="24">
+							<el-container>
+								<el-main>
+									<p :style="'color:' + theme.fontc + ';'">报警事件</p>
+								</el-main>
+							</el-container>
+							<el-container>
+								<el-main>
+									<el-table
+										id="roller"
+										v-on:animationend="tableAnimEnd"
+										:data="tableData"
+										:row-class-name="tableRowClassName"
+										:style="'top:-64px;color:' + theme.fontc + ';background-color:' + theme.platform + '!important;'">
+										<el-table-column
+										  label=""
+										  :width="getTableWidth()">
+										  <template slot-scope="scope">
+											<i class="el-icon-time"></i>
+											<el-tag size="medium" type='info'>{{scope.row[0]}}</el-tag>
+											<el-tag size="medium" type='success'>{{scope.row[1]}}</el-tag>
+											的
+											<el-tag size="medium" type=''>{{scope.row[2]}}</el-tag>
+											从
+											<el-tag size="medium" type='warning'>{{scope.row[3]}}</el-tag>
+											接到
+											<el-tag size="medium" type='danger'>{{scope.row[4]}}</el-tag>
+											<el-tag size="medium" type=''>{{scope.row[5]}}</el-tag>
+											请
+											<el-tag size="medium" type='warning'>{{scope.row[6]}}</el-tag>
+											尽快前往处理
+										  </template>
+										</el-table-column>
+									</el-table>
+								</el-main>
+							</el-container>
+						</el-col>
+					</el-row>
+				</el-row>
+				<el-row v-show="navIndex == '2'" style="margin-top: 10px!important; margin-bottom: 10px!important;">
+					<el-col :span="24">
+						<el-row style="margin: 20px 10px!important;" :gutter="20">
+							<el-col :span="12">
+								<div :style="'background-color:' + theme.platform + '!important;'">
+									<el-header :background-color="theme.hbgc" height="90px">
+										<el-container>
+											<el-header :background-color="theme.hbgc" height="20px" width="10px"></el-header>
+											<el-aside :background-color="theme.hbgc" height="20px" :width="'40px'"></el-aside>
+											<el-main>
+												<el-row>
+													<el-col :span="24" vertical-align="center">
+														<el-date-picker
+														  style="width: 250px!important;"
+														  v-model="date_range_q1"
+														  type="daterange"
+														  align="right"
+														  unlink-panels 
+														  range-separator="至"
+														  start-placeholder="2018-10-30"
+														  end-placeholder="2018-10-30"
+														  :picker-options="rangePickerOptions">
+														</el-date-picker>
+														<el-button type="primary" v-on:click="click_q1" size="small" style="margin-left: 30px!important;">查看</el-button>
+													</el-col>
+												</el-row>
+											</el-main>
+										</el-container>
+									</el-header>
+									<el-main>
+										<div id="graph_main_1" style="margin-left:20px!important;"></div>
+									</el-main>
+								</div>
+							</el-col>
+							<el-col :span="12">
+								<div :style="'background-color:' + theme.platform + '!important;'">
+									<el-row style="padding-top: 5px!important; padding-bottom: 5px!important;">
+										<el-col :span="8">
+											<el-radio v-model="q4TypeChooser" label="month" style="margin-left:20px!important;margin-top:10px!important;">选择月份：</el-radio>
+										</el-col>
+										<el-col :span="8">
+											<el-radio v-model="q4TypeChooser" label="season" style="margin-left:20px!important;margin-top:10px!important;">选择季度：</el-radio>
+										</el-col>
+										<el-col :span="8">
+											<el-radio v-model="q4TypeChooser" label="any" style="margin-left:20px!important;margin-top:10px!important;">时间范围：</el-radio>
+										</el-col>
+									</el-row>
+									<el-row style="padding-top: 10px!important; padding-bottom: 10px!important;">
+										<el-col :span="24" v-show="q4TypeChooser=='month'" vertical-align="center">
+											<el-date-picker
+											  style="margin-left:20px!important;"
+											  v-model="month_q4"
+											  type="month"
+											  align="right"
+											  placeholder="2018-10"
+											  :picker-options="monthPickerOptions">
+											</el-date-picker>
+											<el-button type="primary" v-on:click="click_q4" size="small" style="margin-left:20px!important;">查看</el-button>
+										</el-col>
+										<el-col :span="24" v-show="q4TypeChooser=='season'" vertical-align="center">
+											<el-date-picker
+											  style="margin-left:20px!important;width:100px!important;"
+											  v-model="year_q4"
+											  type="year"
+											  align="right"
+											  placeholder="2018"
+											  :picker-options="yearPickerOptions">
+											</el-date-picker>
+											<el-select v-model="season_q4" placeholder="第一季度" style="margin-left:20px!important;">
+												<el-option
+												  v-for="season in seasons"
+												  :value="season[2]"
+												  :label="season[0]">
+												  <span style="float: left">{{ season[0] }}</span>
+												  <span style="float: right; color: #8492a6; font-size: 13px">{{ season[1] }}</span>
+												</el-option>
+											</el-select>
+											<el-button type="primary" v-on:click="click_q4" size="small" style="margin-left:20px!important;">查看</el-button>
+										</el-col>
+										<el-col :span="24" v-show="q4TypeChooser=='any'" vertical-align="center">
+											<el-date-picker
+											  style="margin-left:20px!important;"
+											  v-model="date_range_q4"
+											  type="daterange"
+											  align="right"
+											  unlink-panels 
+											  range-separator="至"
+											  start-placeholder="2018-10-30"
+											  end-placeholder="2018-10-30"
+											  :picker-options="rangePickerOptions">
+											</el-date-picker>
+											<el-button type="primary" v-on:click="click_q4" size="small" style="margin-left:20px!important;">查看</el-button>
+										</el-col>
+									</el-row>
+									<el-row style="padding-top: 17px!important; padding-bottom: 17px!important;">
+										<el-col :span="24"><div id="graph_main_4" style="margin-left:20px!important;"></div></el-col>
+									</el-row>
+								</div>
+							</el-col>
+						</el-row>
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+							<el-col :span="24">
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24" vertical-align="center">
+										<el-date-picker
+										  style="margin-left:40px!important;"
+										  v-model="month_q2"
+										  type="month"
+										  align="right"
+										  placeholder="2018-10"
+										  :picker-options="monthPickerOptions">
+										</el-date-picker>
+										<el-button type="primary" v-on:click="click_q2" size="small" style="margin-left:20px!important;">查看</el-button>
+										<el-button type="primary" v-on:click="click_q2_today" size="small" style="margin-left:20px!important;">今日</el-button>
+									</el-col>
+								</el-row>
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24"><div id="graph_main_2" style="margin-left:40px!important;"></div></el-col>
+								</el-row>
+							</el-col>
+						</el-row>
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+							<el-col :span="24">
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24" vertical-align="center">
+										<el-date-picker
+										  size="small"
+										  style="margin-left:40px!important;"
+										  v-model="month_q3"
+										  type="month"
+										  align="right"
+										  placeholder="2018-10"
+										  :picker-options="monthPickerOptions">
+										</el-date-picker>
+										<el-button type="primary" v-on:click="click_q3" size="small" style="margin-left:20px!important;">查看</el-button>
+										<el-button type="primary" v-on:click="click_q3_today" size="small" style="margin-left:20px!important;">今日</el-button>
+									</el-col>
+								</el-row>
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24"><div id="graph_main_3" style="margin-left:40px!important;"></div></el-col>
+								</el-row>
+							</el-col>
+						</el-row>
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+							<el-col :span="24">
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24" vertical-align="center">
+										<el-date-picker
+										  size="small"
+										  style="margin-left:40px!important;"
+										  v-model="month_q6"
+										  type="month"
+										  align="right"
+										  placeholder="2018-09"
+										  :picker-options="monthPickerOptions_q6">
+										</el-date-picker>
+										<el-button type="primary" v-on:click="click_q6" size="small" style="margin-left:20px!important;">查看</el-button>
+									</el-col>
+								</el-row>
+								<el-row style="margin-top: 10px!important; margin-bottom: 10px!important;">
+									<el-col :span="24"><div id="graph_main_6" style="margin-left:40px!important;"></div></el-col>
+								</el-row>
+							</el-col>
+						</el-row>
+						
+					</el-col>
+				</el-row>
+				<el-row v-show="navIndex == '3' && !isChangingPassword" style="margin-top: 10px!important; margin-bottom: 10px!important;">
+					<el-col :span="isCollapse? 7 : 8" :style="'margin:0px 30%!important;width:40%!important;background-color:' + theme.platform + '!important;'">
+						<el-row style="margin-left: 38%!important; width: 20%important;">
+							<el-avatar :size="100" fit="cover" style="margin-top: 30px!important;" src="/user_head.bmp"></el-avatar>		
+						</el-row>
+						<el-row v-for="(item, i) in userInfo" style="margin:20px 5%!important; width: 90%important;">
+							<el-input :placeholder="'请输入' + item[0]" v-model="item[1]" maxlength="20">
+								<template slot="prepend">{{item[0]}}</template>
+							</el-input>
+						</el-row>
+						<el-row>
+							 <el-button type="primary" size="small" :disabled="solidUserInfo.toString() == userInfo.toString()" style="margin:20px 40%!important; width:20%!important;" @click="userInfoChange">提交更改</el-button>
+						</el-row>
+						<el-row>
+							 <el-button type="success" size="mini" style="margin-bottom:20px; margin-left: 40%; margin-right:40%; width:20%!important;" plain @click="isChangingPassword = true;">修改密码</el-button>
+						</el-row>
+					</el-col>
+				</el-row>
+				<el-row v-show="navIndex == '3' && isChangingPassword" style="margin-top: 10px!important; margin-bottom: 10px!important;">
+					<el-col :span="9" :style="'margin:0px 30%!important;width:40%!important;background-color:' + theme.platform + '!important;'">
+						<el-steps :active="cpStepActive" finish-status="success" style="margin:20px!important;">
+						    <el-step title="身份验证"></el-step>
+						    <el-step title="修改密码"></el-step>
+						    <el-step title="修改成功"></el-step>
+						</el-steps>
+						<el-row style="margin:20px!important;" v-show="cpStepActive == 0">
+							<el-col :span="23" style="margin:20px!important;padding-right:20px!important;">
+								<el-input placeholder="请输入旧密码" v-model="oldPassword" maxlength="20" show-password>
+									<template slot="prepend">原密码 </template>
+								</el-input>
+								<el-button type="primary" style="width:40%!important;margin-left:30%!important;margin-top:20px!important;" @click="sendOldAndNext">Next</el-button>
+							</el-col>
+						</el-row>
+						<el-row style="margin:20px!important;" v-show="cpStepActive == 1">
+							<el-col :span="23" style="margin:20px!important;padding-right:20px!important;">
+								<el-input placeholder="请输入新密码" v-model="newPassword" maxlength="20" show-password>
+									<template slot="prepend">更改密码 </template>
+								</el-input>
+								<el-input placeholder="请确认新密码" v-model="newPasswordConfirm" maxlength="20" show-password style="margin-top:20px!important;">
+									<template slot="prepend">确认密码 </template>
+								</el-input>
+								<el-button type="primary" style="width:40%!important;margin-left:30%!important;margin-top:20px!important;" @click="sendNewAndNext">Next</el-button>
+							</el-col>
+						</el-row>
+						<el-row style="margin:200px!important;" v-show="cpStepActive == 2">
+							修改成功
+						</el-row>
+					</el-col>
+				</el-row>
+				<el-row v-show="navIndex == '4'" style="margin-top: 10px!important; margin-bottom: 10px!important;">
+					<el-col style="margin:0px 15%!important; width:70%!important;">
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+							<el-col :span="18" style="margin:2%!important;">
+								<el-input placeholder="要搜寻的用户信息" v-model="searchInput" maxlength="30">
+									<template slot="prepend">用户名</template>
+								</el-input>
+							</el-col>
+							<el-col :span="3" style="margin:2%!important;">
+								<el-button type="primary" style="" @click="adminSearchUser()" icon="el-icon-search">搜索</el-button>
+							</el-col>
+							<el-col :span="3" style="margin:2%!important;">
+								<el-button type="primary" style="" @click="isAddingNewUser = true;" icon="el-icon-plus">创建新用户</el-button>
+							</el-col>
+						</el-row>
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'" v-show="isAddingNewUser">
+							<el-form ref="" :model="newUserForm" label-width="15%" style="margin: 20px!important;">
+							  <el-form-item label="用户名">
+								<el-input v-model="newUserForm.username"></el-input>
+							  </el-form-item>
+							  <el-form-item label="姓名">
+								<el-input v-model="newUserForm.name"></el-input>
+							  </el-form-item>
+							  <el-form-item label="部门">
+								<el-input v-model="newUserForm.department"></el-input>
+							  </el-form-item>
+							  <el-form-item label="密码">
+								<el-input v-model="newUserForm.password"></el-input>
+							  </el-form-item>
+							  <el-form-item label="管理员认证">
+								<el-switch v-model="newUserForm.isAdmin"></el-switch>
+							  </el-form-item>
+							  <el-form-item>
+								<el-button type="primary" @click="addNewUser();">立即创建</el-button>
+								<el-button @click="isAddingNewUser = false;">取消</el-button>
+							  </el-form-item>
+							</el-form>
+						</el-row>
+						<el-row :style="'margin: 20px!important; background-color:' + theme.platform + '!important;'">
+							<el-table :data="adminViewTable" id="admin_view">
+								<el-table-column
+								  type="selection"
+								  width="55">
+								</el-table-column>
+								<el-table-column
+								  label="用户名 User Name"
+								  prop="username">
+								</el-table-column><!--:width="getAdminViewWidth() * 0.225"-->
+								<el-table-column
+								  label="姓名 Name"
+								  prop="name">
+								</el-table-column>
+								<el-table-column
+								  label="所属单位 Department"
+								  prop="department">
+								</el-table-column>
+								<el-table-column
+								  label="用户密码 Password"
+								  prop="password">
+								</el-table-column>
+								<el-table-column
+								  label=""
+								  >
+								  <template slot-scope="scope">
+									  <el-button
+										  @click.native.prevent="adminShowPassword(scope.$index)"
+										  type="text"
+										  size="small"
+										  v-show="scope.row.password == '-'">
+										  显示密码
+									  </el-button>
+									  <el-button
+										  @click.native.prevent="scope.row.password = '-'"
+										  type="text"
+										  size="small"
+										  v-show="scope.row.password != '-'">
+										  隐藏密码
+									  </el-button>
+									  <el-button
+										  @click.native.prevent="adminChangeUser(scope.$index)"
+										  type="text"
+										  size="small">
+										  更改账户
+									  </el-button>
+									  <el-dialog title="更改用户信息" :visible.sync="adminChangeUserFormVisible">
+										<el-form :model="adminChangeUserForm">
+										  <el-form-item label="用户名" label-width="15%">
+											<el-input v-model="adminChangeUserForm.username"></el-input>
+										  </el-form-item>
+										  <el-form-item label="姓名" label-width="15%">
+											<el-input v-model="adminChangeUserForm.name"></el-input>
+										  </el-form-item>
+										  <el-form-item label="部门" label-width="15%">
+											<el-input v-model="adminChangeUserForm.department"></el-input>
+										  </el-form-item>
+										  <el-form-item label="密码" label-width="15%">
+											<el-input v-model="adminChangeUserForm.password"></el-input>
+										  </el-form-item>
+										  <el-form-item label="管理员认证" label-width="15%">
+											<el-switch v-model="adminChangeUserForm.isAdmin"></el-switch>
+										  </el-form-item>
+										  <el-form-item label="" label-width="20%">
+											<el-button @click="adminChangeUserFormVisible = false">取 消</el-button>
+											<el-button type="primary" @click="adminChangeUserFormVisible = false; adminChangeUserByForm(scope.$index);">确 定</el-button>
+										  </el-form-item>
+										 </el-form>
+									  </el-dialog>
+								  </template>
+								</el-table-column>
+							</el-table>
+						</el-row>
+					</el-col>
+				</el-row>
+			</el-col>
+		</el-row>
+	</div>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="static/js/graph_loader.js"></script>
+<script>
+	var url = window.location.href;
+	var today = new Date('2018-10-30 23:59:59');
+	var todayStr = '2018-10-30';
+	var todayArray = [2018, 10, 30];
+	var thisMonthStr = '2018-10';
+	var lastMonthStr = '2018-09';
+	var thisYearStr = '2018';
+	var lastYearStr = '2017';
+	var theme_day = {
+		theme_name:"day",
+		logo:{
+			url:'static/images/logo_day.jpg'
+		},
+		logo_small:{
+			url:'static/images/logo_day_small.jpg'
+		},
+		nav:{
+			bgc: 'rgb(41, 60, 85)',
+			txtc: '#eeeeee',
+			acttxtc:'rgb(228, 60, 89)',
+		},
+		bgc:'rgb(239,241,245)!important',
+		platform:'#fff',
+		fontc:'#000',
+		a_row:'a-row-day',
+		b_row:'b-row-day',
+	};
+	var theme_night = {
+		theme_name:"night",
+		logo:{
+			url:'static/images/logo_night.jpg'
+		},
+		logo_small:{
+			url:'static/images/logo_night_small.jpg'
+		},
+		nav:{
+			bgc: 'rgb(30, 44, 60)',
+			txtc: '#eeeeee',
+			acttxtc:'rgb(228, 60, 89)',
+		},
+		bgc:'rgb(51, 73, 87)!important',
+		platform:'rgb(51, 73, 87)',
+		fontc:'#fff',
+		a_row:'a-row-night',
+		b_row:'b-row-night',
+	};
+	
+	function lastDayOf(year, month){
+		var lookup = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+		if(month == 2 && year % 4 == 0 && year % 400 != 0){
+			return 29;
+		}
+		else{
+			return lookup[month];
+		}
+	}
+	
+	function deep_copy(arr){
+		return JSON.parse(JSON.stringify(arr));
+	}
+	
+	var vm = new Vue({
+		el: "#app",
+		data() {
+		  return {
+		    
+		    adminChangeUserFormVisible: false,
+			adminChangeUserUsername: '',
+			adminChangeUserForm: {username:'', name:'', department:'', password:'', isAdmin:false},
+		    newUserForm : {username:'', name:'', department:'', password:'', isAdmin:false},
+		    isAddingNewUser : false,
+		    solidUserInfo: [],
+			userInfo: [['', ''], ['', ''], ['', '']],
+			cpStepActive: 0,
+			isChangingPassword: false,
+			oldPassword : '',
+			newPassword : '',
+			newPasswordConfirm: '',
+			navIndex: '1',
+			isCollapse: false,
+			theme: theme_day,
+			isAdmin: false,
+			navName: '首 页 Home Page',
+			navNameLookup: {'1': '首 页 Home Page', '2': '视 图 Graph Board', '3': '个人账户 Account', '4': '管理选项 System Options'},
+			chart1: null,
+			chart2: null,
+			chart3: null,
+			chart4: null,
+			chart6: null,
+			update1:null,
+			update2:null,
+			update3:null,
+			update4:null,
+			update5:null,
+			update6:null,
+			adminViewTable: [],
+			searchInput: '',
+			rangePickerOptions: {
+			  disabledDate(time) {
+				return time.getTime() >= new Date('2018-10-01 00:00:00').getTime();
+			  },
+			  shortcuts: [{
+				text: '最近一周',
+				onClick(picker) {
+				  const end = today;
+				  const start = new Date();
+				  start.setTime(end.getTime() - 3600 * 1000 * 24 * 7);
+				  picker.$emit('pick', [start, end]);
+				}
+			  }, {
+				text: '最近一个月',
+				onClick(picker) {
+				  const end = today;
+				  const start = new Date();
+				  start.setTime(end.getTime() - 3600 * 1000 * 24 * 30);
+				  picker.$emit('pick', [start, end]);
+				}
+			  }, {
+				text: '最近三个月',
+				onClick(picker) {
+				  const end = today;
+				  const start = new Date();
+				  start.setTime(end.getTime() - 3600 * 1000 * 24 * 90);
+				  picker.$emit('pick', [start, end]);
+				}
+			  }]
+			},
+			monthPickerOptions: {
+			  disabledDate(time) {
+				return time.getTime() > today.getTime();
+			  },
+			  shortcuts: [{
+				text: '本月',
+				onClick(picker) {
+				  picker.$emit('pick', new Date(thisMonthStr));
+				}
+			  }, {
+				text: '上一月',
+				onClick(picker) {
+				  picker.$emit('pick', new Date(lastMonthStr));
+				}
+			  }]
+			},
+			monthPickerOptions_q6: {
+			  disabledDate(time) {
+				return time.getTime() > today.getTime();
+			  },
+			  shortcuts: [{
+				text: '上一月',
+				onClick(picker) {
+				  picker.$emit('pick', new Date(lastMonthStr));
+				}
+			  }]
+			},
+			yearPickerOptions: {
+			  disabledDate(time) {
+				return time.getTime() > today.getTime();
+			  },
+			  shortcuts: [{
+				text: '今年',
+				onClick(picker) {
+				  picker.$emit('pick', new Date(thisYearStr));
+				}
+			  }, {
+				text: '去年',
+				onClick(picker) {
+				  picker.$emit('pick', new Date(lastYearStr));
+				}
+			  }]
+			},
+			seasons: [['第一季度', '1~3月', 0], ['第二季度', '4~6月', 1], ['第三季度', '7~9月', 2], ['第四季度', '10~12月', 3]],
+			date_range_q1: ['2018-10-30','2018-10-30'],
+			month_q2: '2018-10',
+			month_q3: '2018-10',
+			q4TypeChooser: 'month',
+			month_q4: '2018-10',
+			year_q4: '2018',
+			season_q4: 0, // 0 1 2 3 分别是一 二 三 四季度
+			date_range_q4: ['2018-10-30','2018-10-30'],
+			month_q6: '2018-09',
+			tableData: [['','','','','','','']],
+			rowClassChooser: 0,
+			myChart: null,
+			last_rq: {'q1': '', 'q2': '', 'q3': '', 'q4': '', 'q5': '', 'q6': ''},
+			graph_initialized: false,
+		  };
+		},
+		created: function () {
+			setInterval (this.tableAnim, 5000);
+			this.click_q5()
+			this.getSolidUserInfo();
+			this.getAdminCertif();
+		},
+		methods: {
+			theme_is_day() {
+				this.theme = theme_day;
+				document.getElementsByTagName('html')[0].style = "background-color:" + theme_day.bgc + ";";
+			},
+			theme_is_night() {
+				this.theme = theme_night;
+				document.getElementsByTagName('html')[0].style = "background-color:" + theme_night.bgc + ";";
+			},
+			addNewUser() {
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'add_new_user',
+							'form' : this.newUserForm,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'successful') {
+							Vue.prototype.$message({
+								message: '创建成功',
+								type: 'success'
+							});
+							isAddingNewUser = false;
+						}
+						else if(jdata.message == 'username_exists') {
+							Vue.prototype.$message.error('该用户名已存在，请更换其他用户名。');
+						}
+						else if(jdata.message == 'bad_password') {
+							Vue.prototype.$message.error('密码必须是6~20位数字、字母或它们的组合。');
+						}
+						else if(jdata.message == 'permission_denied') {
+							Vue.prototype.$message.error('无权限');
+						}
+						else if(jdata.message == 'invalid_username') {
+							Vue.prototype.$message.error('用户名含有非法字符，请更换其他用户名。');
+						}
+					}
+				);
+			},
+			deleteUser(index) {
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'delete_user',
+							username : this.adminViewTable[index].username,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+					}
+				);
+			},
+			adminChangeUser(index) {
+				this.adminChangeUserForm = deep_copy(this.adminViewTable[index]);
+				this.adminChangeUserUsername = deep_copy(this.adminChangeUserForm.username);
+				console.log(this.adminChangeUserUsername);
+				this.adminChangeUserFormVisible = true;
+			},
+			adminChangeUserByForm(index) {
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'admin_change_user_info',
+							username : this.adminChangeUserUsername,
+							info: this.adminChangeUserForm
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'successful') {
+							this.adminViewTable[index] = deep_copy(this.adminChangeUserForm);
+							this.adminViewTable[index].password = '-';
+							Vue.prototype.$message({
+								message: '修改成功',
+								type: 'success'
+							});
+						}
+						else if(jdata.message == 'username_exists') {
+							Vue.prototype.$message.error('该用户名已存在，请更换其他用户名。');
+						}
+						else if(jdata.message == 'bad_password') {
+							Vue.prototype.$message.error('密码必须是6~20位数字、字母或它们的组合。');
+						}
+						else if(jdata.message == 'permission_denied') {
+							Vue.prototype.$message.error('无权限');
+						}
+						else if(jdata.message == 'self_change_denied') {
+							Vue.prototype.$message.error('无法更改正在使用的账号。');
+						}
+						else if(jdata.message == 'invalid_username') {
+							Vue.prototype.$message.error('用户名含有非法字符，请更换其他用户名。');
+						}
+					}
+				);
+			},
+			logout(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'logout',
+						})
+					},
+					(msg, status)=>{
+						location.reload();
+					}
+				);
+			},
+			adminSearchUser(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'search_user',
+							'input' : this.searchInput,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						this.adminViewTable = deep_copy(jdata.table); //important!!
+					}
+				);
+			},
+			getAdminCertif(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'get_admin_certif'
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'true'){
+							this.isAdmin = true;
+						}
+					}
+				);
+			},
+			adminShowPassword(index){
+				targetUsername = this.adminViewTable[index].username;
+				this.$prompt('请输入管理员密码', '提示', {
+				  confirmButtonText: '确定',
+				  cancelButtonText: '取消',
+				}).then(({ value }) => {
+				    if(value.length <= 20)
+					{
+						$.post(url,
+							{
+								'meta': JSON.stringify({
+									'type' : 'show_password',
+									'target_user' : targetUsername,
+									'admin_password' : value
+								})
+							},
+							(msg, status)=>{
+								var jdata = eval('(' + msg.toString() + ')');
+								if(jdata.type == 'error'){
+									Vue.prototype.$message.error('管理员验证失败：密码错误');
+								}
+								else if(jdata.type == 'password'){
+									this.adminViewTable[index].password = jdata.password;
+								}
+							}
+						);
+					}
+				}).catch(() => {
+				  this.$message({
+					type: 'info',
+					message: '取消输入'
+				  });       
+				});
+			},
+			getSolidUserInfo(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'userinfo',
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						this.solidUserInfo = deep_copy(jdata.info);
+						this.userInfo = deep_copy(jdata.info);
+					}
+				);
+			},
+			userInfoChange(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'info_change',
+							'data' : this.userInfo,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'invalid_username') {
+							Vue.prototype.$message.error('用户名含有非法字符，请更换其他用户名。');
+						}
+						else {
+							this.solidUserInfo = deep_copy(this.userInfo);
+							Vue.prototype.$message({
+								message: '修改成功',
+								type: 'success'
+							});
+						}
+					}
+				);
+			},
+			sendOldAndNext(){
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'old_confirm',
+							'password' : this.oldPassword,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'successful'){
+							this.cpStepActive = 1;
+						}
+						else{
+							Vue.prototype.$message.error('输入的旧密码有误');
+						}
+					}
+				);
+			},
+			sendNewAndNext(){
+				if(this.newPassword != this.newPasswordConfirm){
+					Vue.prototype.$message.error('两次输入密码内容不匹配，请重新输入。');
+					return;
+				}
+				$.post(url,
+					{
+						'meta': JSON.stringify({
+							'type' : 'change_password',
+							'old' : this.oldPassword,
+							'new' : this.newPassword,
+						})
+					},
+					(msg, status)=>{
+						var jdata = eval('(' + msg.toString() + ')');
+						if(jdata.message == 'successful'){
+							setTimeout(()=>{
+								this.cpStepActive = 0;
+								this.isChangingPassword = false;
+							}, 2000);
+							this.cpStepActive = 2;
+						}
+						else if(jdata.message == 'bad'){
+							Vue.prototype.$message.error('密码格式不正确');
+						}
+						else{
+							Vue.prototype.$message.error('服务器检测到客户端异常');
+						}
+					}
+				);
+			},
+			getTableWidth(){
+				return document.getElementById('roller').parentNode.offsetWidth - 40;
+			},
+			getAdminViewWidth(){
+				return document.getElementById('admin_view').offsetWidth;
+			},
+		    handleNav(key, keyPath) {
+				this.navIndex = key;
+				this.navName = this.navNameLookup[this.navIndex];
+				if (key == '2' && !this.graph_initialized){
+					this.graph_initialized = true;
+					setTimeout(()=>{
+						//console.log('initialized!!!');
+						g1 = document.getElementById('graph_main_1');
+						g2 = document.getElementById('graph_main_2');
+						g3 = document.getElementById('graph_main_3');
+						g4 = document.getElementById('graph_main_4');
+						g6 = document.getElementById('graph_main_6');
+						go1 = g1.parentNode;
+						go2 = g2.parentNode;
+						go3 = g3.parentNode;
+						go4 = g4.parentNode;
+						go6 = g6.parentNode;
+						go1.innerHTML = '';
+						go2.innerHTML = '';
+						go3.innerHTML = '';
+						go4.innerHTML = '';
+						go6.innerHTML = '';
+						go1.innerHTML = '<div id="graph_main_1"></div>';
+						go2.innerHTML = '<div id="graph_main_2"></div>';
+						go3.innerHTML = '<div id="graph_main_3"></div>';
+						go4.innerHTML = '<div id="graph_main_4"></div>';
+						go6.innerHTML = '<div id="graph_main_6"></div>';
+						g1 = document.getElementById('graph_main_1');
+						g2 = document.getElementById('graph_main_2');
+						g3 = document.getElementById('graph_main_3');
+						g4 = document.getElementById('graph_main_4');
+						g6 = document.getElementById('graph_main_6');
+						g1.style = "height: 500px!important;";
+						g2.style = "height: 500px!important;";
+						g3.style = "height: 800px!important;";
+						g4.style = "height: 500px!important;";
+						g6.style = "height: 500px!important;";
+						this.chart1 = echarts.init(g1);
+						this.chart2 = echarts.init(g2);
+						this.chart3 = echarts.init(g3);
+						this.chart4 = echarts.init(g4);
+						this.chart6 = echarts.init(g6);
+						this.click_q1();
+						this.click_q2();
+						this.click_q3();
+						this.click_q4();
+						this.click_q5();
+						this.click_q6();
+					}, 400);
+				}
+		    },
+			getHeaderName(){
+				if(this.navIndex == '3' && this.isChangingPassword){
+					return '修 改 密 码'
+				}
+				else{
+					return this.navNameLookup[this.navIndex];
+				}
+			},
+			goBack(){
+				if(this.isChangingPassword){
+					this.isChangingPassword = false;
+					this.cpStepActive = 0;
+				}
+				else{
+					location.reload();
+				}
+			},
+			changeTheme(){
+				var obj = document.getElementById("theme_css");
+				if(this.theme.theme_name == "day"){
+					this.theme = theme_night;
+					obj.setAttribute("href","static/css/main_night.css");
+				}
+				else{
+					this.theme = theme_day;
+					obj.setAttribute("href","static/css/main_day.css");
+				}
+			},
+			handleReceive(msg, status){
+				var obj = eval("("+msg+")");
+				//console.log(obj);
+				if(obj.type == 'a'){
+					if(obj.rq_str != this.last_rq['q' + obj.a_type[1]]){
+						return;
+					}
+					if(obj.a_type == 'a1'){
+						a1_draw(obj, vm.chart1);
+					}
+					if(obj.a_type == 'a2'){
+						a2_draw(obj, vm.chart2);
+					}
+					if(obj.a_type == 'a3'){
+						a3_draw(obj, vm.chart3);
+					}
+					if(obj.a_type == 'a4'){
+						a4_draw(obj, vm.chart4);
+					}
+					if(obj.a_type == 'a5'){
+						if(this.tableData.length != obj.data.length){
+							this.tableData = obj.data;
+						}
+					}
+					if(obj.a_type == 'a6'){
+						a6_draw(obj, vm.chart6);
+					}
+				}
+				else if(obj.type == 'update'){
+					this.handleSend(obj.upd_str, true, 'q' + obj.a_type[1], false);
+				}
+				else{
+					//console.log(obj);
+				}
+			},
+			sendMeta(url, dataStr, postProcess){
+				$.post(url,
+					{
+						'meta': dataStr
+					},
+					postProcess
+				);
+			},
+			handleSend(dataStr, is_today, q_type, is_first_send){
+				if(is_first_send){
+					//console.log('first_send');
+					this.last_rq[q_type] = dataStr;
+				}
+				else if(this.last_rq[q_type] != dataStr){
+					//console.log('blocked update');
+					return;
+				}
+				//console.log('inside');
+				if(q_type == 'q1')
+					clearInterval(this.update1);
+				if(q_type == 'q2')
+					clearInterval(this.update2);
+				if(q_type == 'q3')
+					clearInterval(this.update3);
+				if(q_type == 'q4')
+					clearInterval(this.update4);
+				if(q_type == 'q5')
+					clearInterval(this.update5);
+				if(q_type == 'q6')
+					clearInterval(this.update6);
+				this.sendMeta(url, dataStr, this.handleReceive)
+				
+				if (is_today)
+				{
+					upd = null; 
+					if(q_type == 'q1')
+						this.update1 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+					if(q_type == 'q2')
+						this.update2 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+					if(q_type == 'q3')
+						this.update3 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+					if(q_type == 'q4')
+						this.update4 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+					if(q_type == 'q5')
+						this.update5 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+					if(q_type == 'q6')
+						this.update6 = setInterval(this.sendMeta, 2000, url, dataStr, this.handleReceive);
+				}
+			},
+			click_q1(){
+				start_date = new Date(this.date_range_q1[0]);
+				end_date = new Date(this.date_range_q1[1]);
+				startArray = [start_date.getFullYear(), start_date.getMonth() + 1, start_date.getDate()];
+				endArray = [end_date.getFullYear(), end_date.getMonth() + 1, end_date.getDate()];
+				isToday = (endArray[0] == todayArray[0] && endArray[1] == todayArray[1] && endArray[2] == todayArray[2]);
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q1',
+					'from': {"year": startArray[0], "month": startArray[1], "day": startArray[2]},
+					'to': {"year": endArray[0], "month": endArray[1], "day": endArray[2]}
+				});
+				this.handleSend(dataStr, isToday, 'q1', true);
+			},
+			click_q2(){
+				month_date = new Date(this.month_q2);
+				monthArray = [month_date.getFullYear(), month_date.getMonth() + 1];
+				isToday = (monthArray[0] == todayArray[0] && monthArray[1] == todayArray[1]);
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q2',
+					'today' : 'false',
+					'year' : monthArray[0],
+					'month' : monthArray[1]
+				});
+				//console.log(dataStr);
+				this.handleSend(dataStr, isToday, 'q2', true);
+			},
+			click_q2_today(){
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q2',
+					'today' : 'true',
+					'year' : '',
+					'month' : ''
+				});
+				this.handleSend(dataStr, true, 'q2', true);
+			},
+			click_q3(){
+				month_date = new Date(this.month_q3);
+				monthArray = [month_date.getFullYear(), month_date.getMonth() + 1];
+				isToday = (monthArray[0] == todayArray[0] && monthArray[1] == todayArray[1]);
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q3',
+					'today' : 'false',
+					'year' : monthArray[0],
+					'month' : monthArray[1]
+				});
+				this.handleSend(dataStr, isToday, 'q3', true);
+			},
+			click_q3_today(){
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q3',
+					'today' : 'true',
+					'year' : '',
+					'month' : ''
+				});
+				this.handleSend(dataStr, true, 'q3', true);
+			},
+			click_q4(){
+				if (this.q4TypeChooser == 'month'){
+					month_date = new Date(this.month_q4);
+					monthArray = [month_date.getFullYear(), month_date.getMonth() + 1];
+					isToday = (monthArray[0] == todayArray[0] && monthArray[1] == todayArray[1]);
+					dataStr = JSON.stringify({
+						'type' : 'q',
+						'q_type' : 'q4',
+						'from': {"year": monthArray[0], "month": monthArray[1], "day": 1},
+						'to': {"year": monthArray[0], "month": monthArray[1], "day": lastDayOf(monthArray[0], monthArray[1])}
+					});
+					this.handleSend(dataStr, isToday, 'q4', true);
+				}
+				if (this.q4TypeChooser == 'season'){
+					year = new Date(this.year_q4).getFullYear();
+					start_month = this.season_q4 * 3 + 1;
+					end_month = this.season_q4 * 3 + 3;
+					isToday = (year == todayArray[0] && start_month <= todayArray[1] && end_month >= todayArray[1]);
+					dataStr = JSON.stringify({
+						'type' : 'q',
+						'q_type' : 'q4',
+						'from': {"year": year, "month": start_month, "day": 1},
+						'to': {"year": year, "month": end_month, "day": lastDayOf(year, end_month)}
+					});
+					this.handleSend(dataStr, isToday, 'q4', true);
+				}
+				if (this.q4TypeChooser == 'any'){
+					start_date = new Date(this.date_range_q4[0]);
+					end_date = new Date(this.date_range_q4[1]);
+					startArray = [start_date.getFullYear(), start_date.getMonth() + 1, start_date.getDate()];
+					endArray = [end_date.getFullYear(), end_date.getMonth() + 1, end_date.getDate()];
+					isToday = (endArray[0] == todayArray[0] && endArray[1] == todayArray[1] && endArray[2] == todayArray[2]);
+					dataStr = JSON.stringify({
+						'type' : 'q',
+						'q_type' : 'q4',
+						'from': {"year": startArray[0], "month": startArray[1], "day": startArray[2]},
+						'to': {"year": endArray[0], "month": endArray[1], "day": endArray[2]}
+					});
+					this.handleSend(dataStr, isToday, 'q4', true);
+				}
+			},
+			click_q5(){
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q5'
+				});
+				this.handleSend(dataStr, true, 'q5', true);
+			},
+			click_q6(){
+				month_date = new Date(this.month_q6);
+				monthArray = [month_date.getFullYear(), month_date.getMonth() + 1];
+				dataStr = JSON.stringify({
+					'type' : 'q',
+					'q_type' : 'q6',
+					'year' : monthArray[0],
+					'month' : monthArray[1]
+				});
+				this.handleSend(dataStr, false, 'q6', true);
+			},
+			tableAnim: function () {
+				console.log('animating!!');
+				roller_ctrl = document.getElementById('roller');
+				if(roller_ctrl == null)
+					return;
+				roller_ctrl.style.animation = 'rolling 1s 1 linear';
+				setTimeout(()=>{
+					roller_ctrl = document.getElementById('roller');
+					if(roller_ctrl == null)
+						return;
+					roller_ctrl.style.animation = '';
+					this.tableData.push (this.tableData[0]);
+					this.tableData.shift ();
+					this.rowClassChooser = 1 - this.rowClassChooser;
+				}, 1000);
+			},
+			tableAnimEnd: ()=>{
+				console.log('animating end...');
+				dom = document.getElementById('roller');
+				dom.style.animation = '';
+				this.tableData.push (this.tableData[0]);
+				this.tableData.shift ();
+				this.rowClassChooser = 1 - this.rowClassChooser;
+				
+			},
+			tableRowClassName({row, rowIndex}) {
+				if (rowIndex % 2 == this.rowClassChooser) {
+					return this.theme.a_row;
+				} else if (rowIndex % 2 == 1 - this.rowClassChooser) {
+					return this.theme.b_row;
+				}
+				return '';
+			},
+		}
+	})
+</script>
+<link href="static/css/main_day.css" rel="stylesheet" type="text/css" id="theme_css"/>
+<link href="static/css/main_night.css" rel="stylesheet" type="text/css" id="theme_css"/>
+<style>
+    .el-menu-vertical-demo:not(.el-menu--collapse) {
+		width: 200px;
+		min-height: 400px;
+    }
+	@keyframes rolling{
+		0%{
+			transform: translateY(0);
+		}
+		100%{
+			transform: translateY(-52px);
+		}
+	}
+</style>
+</body>
+</html>

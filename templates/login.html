@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+		body{
+			background: url('/static/images/login_bg.jpg');
+			background-attachment: fixed;
+			background-repeat: no-repeat;
+			background-size: cover;
+		}
+		.login_area{
+			position: absolute;
+			width:25%;
+			height:58%;
+            top: 16%;
+            left: 60%;
+			
+			background: rgb(255,255,255);
+			border-radius: 2px;
+			border-color: black;
+		}
+		.header{
+			position: relative;
+			height:10%;
+			top:5%;
+			background: rgb(255,255,255);
+			font-size: 20px;
+			text-align: center;
+		}
+		#username_wrap{
+			position: relative;
+            width: 80%;
+			left: 10%;
+			top:0%;
+        }
+		#password_wrap{
+			position: relative;
+			width: 80%;
+			left: 10%;
+			top:3%;
+        }
+		#vericode_wrap{
+			position: relative;
+            width: 80%;
+			left: 10%;
+			top:6%;
+		}
+        #veri_image_wrap{
+			position: relative;
+			width: 40%;
+			left: 30%;
+			top:9%;
+		}
+        #login_bt_wrap{
+			position: relative;
+			width: 40%;
+			left: 30%;
+			top:12%;
+			text-align: center;
+        }
+    </style>
+    <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+	<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	
+</head>
+<body id="wrap">
+	<div id="app">
+		<div class="login_area" id="login_area">
+			<p class="header">登 录</p>
+			<div id="username_wrap"><el-input placeholder="请输入用户名" v-model="username" clearable id='username'></el-input></div>
+			<div id="password_wrap"><el-input placeholder="请输入密码" v-model="password" show-password id='password'></el-input></div>
+			<div id="vericode_wrap"><el-input placeholder="验证码" v-model="vericode" clearable id='vericode'></el-input></div>
+			<div id="veri_image_wrap"><image class="veri_image" id="veri_image" onclick="getNewVeriImage();"/></div>
+			<div id="login_bt_wrap"><el-button @click="loginclick">登录</el-button></div>
+		</div>
+	</div>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+	loginpass=function(){
+        $.post(url,
+			{
+				'meta': JSON.stringify({
+					'type' : "login",
+					'username': $('#username').val(),
+					'password': $('#password').val(),
+					'vericode': $('#vericode').val()
+				})
+			},
+			post_process
+		);
+    };
+	new Vue({
+		el: '#app',
+		data: function() {
+			return { username: '', password: '' , vericode:'', loginclick:loginpass}
+		}
+    });
+	
+	var url = window.location.href;
+    var oLogin=document.getElementById('login_bt');
+    var oUsername=document.getElementById('username');
+	var oPassword=document.getElementById('password');
+	var oLoginHint=document.getElementById('login_hint');
+	
+	post_process = function(msg, status){
+		var jdata = eval('(' + msg.toString() + ')');
+		if(jdata.type == "veri_pic")
+			document.getElementById("veri_image").src = "data:image/jpg;base64," + jdata.data;
+		if(jdata.type == "login_ret")
+		{
+			if(jdata.message == "wrong_user_pswd")
+				Vue.prototype.$message.error('用户名或密码错误');
+			if(jdata.message == "wrong_vericode")
+				Vue.prototype.$message.error('验证码错误');
+			if(jdata.message == "successful")
+			{
+				Vue.prototype.$message({
+					message: '登陆成功，正在跳转...',
+					type: 'success'
+				})
+				setTimeout(function(){location.reload();}, 2000);
+			}
+		}
+	}
+	
+	getNewVeriImage = function(){
+        $.post(url,
+			{
+				'meta': JSON.stringify({
+					'type' : 'veri',
+				})
+			},
+			post_process
+		);
+    };
+	
+    window.onload = getNewVeriImage;
+	
+    
+</script>
+</body>
+</html>

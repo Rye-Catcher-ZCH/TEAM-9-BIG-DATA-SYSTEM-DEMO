@@ -1,0 +1,19 @@
+.el-table .a-row-night {
+	background: rgb(51, 73, 87);
+}
+.el-table .b-row-night {
+	background: rgb(30, 44, 60);
+}
+
+@keyframes rolling{
+	0%{
+		transform: translateY(0);
+	}
+	100%{
+		transform: translateY(-50px);
+	}
+}
+
+.el-button{
+	
+}
